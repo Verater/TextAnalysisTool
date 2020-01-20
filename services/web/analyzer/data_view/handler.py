@@ -161,4 +161,142 @@ class DataViewHandler(SerializableHandler):
         self._loaded = True
 
     def save(self):
-        if not self._load
+        if not self._loaded:
+            log.warning("Attempting to save DataViews that have not been loaded")
+            return
+        self._save(self._path)
+
+    def create(
+        self,
+        parent: Optional[Union[DataView, DataViewId]],
+        user: Union[User, UserId],
+        dataset: Union[Dataset, DatasetId],
+        labels: LabelSequence,
+        transforms: Optional[TransformList] = None,
+    ) -> DataView:
+        log.debug("DataViewHandler.create")
+
+        try:
+            parent_id = parent.id
+        except AttributeError:
+            parent_id = parent
+
+        try:
+            dataset_id = dataset.id
+        except AttributeError:
+            dataset_id = dataset
+
+        try:
+            user_id = user.id
+        except AttributeError:
+            user_id = user
+
+        if not transforms:
+            transforms = TransformList()
+
+        data_view = DataView(
+            data_view_id=DataViewId(self._next_id),
+            parent_data_view_id=parent_id,
+            dataset_id=dataset_id,
+            user_id=user_id,
+            labels=labels,
+            transforms=transforms,
+        )
+
+        self._data_views.append(data_view)
+        self._index_data_view(data_view)
+
+        log.info("saving new DataView: %s", data_view.id)
+        self.save()
+
+        return data_view
+
+    @property
+    def _next_id(self) -> int:
+        return 1 + max((int(data_view.id) for data_view in self._data_views), default=0)
+
+    def _index_data_view(self, data_view: DataView):
+        data_view_id = data_view.id
+
+        self._data_view_by_id[data_view_id] = data_view
+
+        serialization = self._serialize_for_cache(
+            dataset_id=data_view.dataset_id,
+            transforms=data_view.transforms,
+        )
+        self._data_view_id_by_serialization[serialization] = data_view.id
+
+    @classmethod
+    def _serialize_for_cache(cls, dataset_id: DatasetId, transforms: TransformList) -> str:
+        serialized_transforms = transforms.serialize() if transforms else []
+        return json.dumps([dataset_id, serialized_transforms])
+
+    @property
+    def data_views(self) -> List[DataView]:
+        return self._data_views
+
+    def find(
+        self, user_id: Optional[UserId] = None, dataset_id: Optional[DatasetId] = None
+    ) -> List[DataView]:
+        results: List[DataView] = []
+        for data_view in self.data_views:
+            if user_id and user_id != data_view.user_id:
+                continue
+            if dataset_id and dataset_id != data_view.dataset_id:
+                continue
+            results.append(data_view)
+        return results
+
+    def find_first(
+        self, user_id: Optional[UserId] = None, dataset_id: Optional[DatasetId] = None
+    ) -> Optional[DataView]:
+        for data_view in self.data_views:
+            if user_id and user_id != data_view.user_id:
+                continue
+            if dataset_id and dataset_id != data_view.dataset_id:
+                continue
+            return data_view
+
+    def by_id(self, data_view_id: DataViewId) -> DataView:
+        return self._data_view_by_id.get(data_view_id)
+
+    @property
+    def labels(self) -> List[Label]:
+        raise NotImplementedError()
+
+    def get_label(self, name: str, data_view: DataView) -> Label:
+        try:
+            return self._label_by_name_by_data_view.get(data_view).get(name)
+        except KeyError:
+            return Label(name=name)
+
+    @classmethod
+    def _delete_transform_from_data_view(
+        cls,
+        transform: Transform,
+        updated_transforms: TransformList,
+        updated_labels: LabelSequence,
+        data_view: DataView,
+    ) -> Tuple[TransformList, LabelSequence]:
+        log.info(f"Removing transform from {data_view.id}")
+        transform_tree = data_view.transform_tree
+
+        updated_transforms = TransformList(updated_transforms)
+        updated_labels = LabelSequence(updated_labels)
+
+        # the transforms queued for removal
+        del_transforms: Deque[Transform] = deque([transform])
+        while del_transforms:
+            log.info(f"about to pop {del_transforms[0]}")
+            transform = del_transforms.popleft()
+
+            if isinstance(transform, EnrichmentTransform):
+                for label_name in transform.output_labels:
+                    log.info(f"removing by name {label_name}")
+                    updated_labels.remove_by_name(label_name)
+
+                del_transforms.extend(transform_tree.get_children_of_transform(transform))
+            log.info(f"removing transform: {transform.serialize()}")
+            updated_transforms.remove(transform)
+
+        return updated_transforms, updated
