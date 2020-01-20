@@ -299,4 +299,69 @@ class DataViewHandler(SerializableHandler):
             log.info(f"removing transform: {transform.serialize()}")
             updated_transforms.remove(transform)
 
-        return updated_transforms, updated
+        return updated_transforms, updated_labels
+
+    @classmethod
+    def _add_transform_to_data_view(
+        cls,
+        transform: Transform,
+        updated_transforms: TransformList,
+        updated_labels: LabelSequence,
+        data_view: DataView,
+    ) -> Tuple[TransformList, LabelSequence]:
+        log.info(f"Adding transform to {data_view.id}")
+        updated_transforms = TransformList(updated_transforms)
+        updated_labels = LabelSequence(updated_labels)
+
+        updated_transforms.append(transform)
+
+        if isinstance(transform, EnrichmentTransform):
+            updated_labels.extendleft([Label(name) for name in transform.output_labels])
+
+        return updated_transforms, updated_labels
+
+    def transform_data_view(
+        self,
+        data_view_id: DataViewId,
+        add_transforms: Optional[List[Transform]] = None,
+        del_transforms: Optional[List[Transform]] = None,
+    ) -> DataView:
+
+        data_view = self.by_id(data_view_id)
+        if data_view is None:
+            raise ValueError(f"Could not find DataView for id {data_view_id}")
+
+        updated_transforms = TransformList(data_view.transforms)
+        updated_labels = LabelSequence(data_view.labels)
+
+        for transforms, apply_change in [
+            (del_transforms or [], self._delete_transform_from_data_view),
+            (add_transforms or [], self._add_transform_to_data_view),
+        ]:
+            for transform in transforms:
+                updated_transforms, updated_labels = apply_change(
+                    transform,
+                    updated_transforms,
+                    updated_labels,
+                    data_view,
+                )
+
+        # see if this DataView already exists
+        serialization = self._serialize_for_cache(
+            data_view.dataset_id,
+            updated_transforms,
+        )
+
+        existing_id = self._data_view_id_by_serialization.get(serialization, None)
+        if existing_id:
+            log.info(f"using cached DataView {existing_id}")
+            return self.by_id(existing_id)
+
+        log.info("saving new DataView")
+        return self.create(
+            parent=data_view_id,
+            user=data_view.user_id,
+            dataset=data_view.dataset_id,
+            labels=updated_labels,
+            transforms=updated_transforms,
+        )
