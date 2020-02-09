@@ -7,4 +7,51 @@
   <script src="static/scripts/plotly-1.53.0.min.js"></script>
   <script src="static/scripts/utils.js"></script>
   <script src="static/scripts/query.js"></script>
-  <script src="static/scripts/vi
+  <script src="static/scripts/views.js"></script>
+  <script src="static/scripts/data_view.js"></script>
+  <script src="static/scripts/transform.js"></script>
+  <script src="static/scripts/dataset.js"></script>
+  <script src="static/scripts/chart.js"></script>
+  <script src="static/scripts/analyzer.js"></script>
+</head>
+
+<body>
+<div id="datasetWindow">
+  <div id="activeDatasetWindow">
+    <span id="activeDatasetLabel">dataset</span>
+    <span id="activeDatasetText"></span>
+  </div>
+  <div id="datasetSelectionWindow">
+    <div id="datasetSelectionTitle">available datasets</div>
+    <div id="datasetSelectionList"></div>
+    <div id="datasetSelectionTools">
+      <div id="datasetSelectionRefresh">refresh</div>
+    </div>
+  </div>
+</div>
+<div id="mainWindow">
+  <div id="toolWindow">
+    <div id="transformListWindow"></div>
+    <div id="transformCreationWindow">
+      <div id="addTransformWindow">
+        <div class="button" id="addFilterButton">add filter</div>
+        <div class="button" id="addEnrichmentButton">add enrichment</div>
+        <div class="button" id="addVisualizationButton">add visualization</div>
+      </div>
+      <div id="buildTransformWindow"></div>
+      <div id="buildVisualizationWindow"></div>
+    </div>
+  </div>
+  <div id="dataWindow">
+    <div id="dataViewContainer">
+      <table id="dataViewTable"></table>
+    </div>
+  </div>
+</div>
+<section id="categoryWindow">
+</section>
+<section id="chartWindow">
+</section>
+</body>
+
+</html>
