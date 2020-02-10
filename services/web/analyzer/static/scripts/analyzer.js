@@ -116,4 +116,127 @@ class App {
       App.chart1CloseButtonId,
       App.chart2CloseButtonId,
       App.chart3CloseButtonId,
-  
+    );
+    Object.seal(this.chartManager);
+
+    this.transformManager = new TransformManager(
+      App.buildTransformWindowId,
+      App.buildVisualizationWindowId,
+      App.addTransformWindowId,
+      App.addFilterButtonId,
+      App.addEnrichmentButtonId,
+      App.addVisualizationButtonId,
+      App.transformListWindowId,
+      App.transformListTableId,
+    );
+    Object.seal(this.transformManager);
+
+    this.dataViewManager = new DataViewManager();
+    Object.seal(this.dataViewManager);
+
+    this.sortLabel = null;
+    this.sortDir = "desc";
+  }
+
+  init() {
+    console.info('init started');
+    this._dataView = null;
+
+    const datasetManager = this.datasetManager;
+    const dataViewManager = this.dataViewManager;
+    const chartManager = this.chartManager;
+    const transformManager = this.transformManager;
+    const tagManager = this.tagManager;
+
+    const initDatasetManager = datasetManager.init.bind(datasetManager);
+    const initDataViewManager = dataViewManager.init.bind(dataViewManager);
+    const initChartManager = chartManager.init.bind(chartManager);
+    const initTransformManager = transformManager.init.bind(transformManager);
+
+    const fetchMostRecentDataView = dataViewManager.fetchMostRecentDataView.bind(dataViewManager);
+    // const fetchRawData = dataViewManager.updateDataView.bind(dataViewManager);
+    const displayCharts = chartManager.initDisplayCharts.bind(chartManager);
+
+    const initAppearance = () => {
+      hide(document.getElementById(App.buildTransformWindowId));
+      transformManager.showAddWindow();
+      const chartWindow = document.getElementById('chartWindow');
+
+      chartWindow.ondblclick = () => {
+        const dims = {};
+        if (chartWindow.clientWidth === 50) {
+          [dims.width, dims.height] = [750, 450];
+        } else {
+          [dims.width, dims.height] = [10, 10];
+        }
+        chartWindow.style.width = px(dims.width);
+        chartWindow.style.height = px(dims.height);
+      };
+
+      return Promise.all([]);
+    };
+
+    const announce = () => { console.info(app.dataView); };
+
+    const doInit = async () => {
+      await isServerAvailable();
+      await initDatasetManager();
+      await initChartManager();
+      await initTransformManager();
+      await initDataViewManager();
+      await initAppearance();
+      await fetchMostRecentDataView();
+      await displayCharts();
+      await announce();
+    };
+
+    doInit().then(result => {
+      console.info("doInit.complete", result);
+    }).catch(err => {
+      console.error("doInit - finished with error", err);
+    });
+
+    Object.seal(datasetManager);
+    Object.seal(dataViewManager);
+    Object.seal(chartManager);
+    Object.seal(transformManager);
+    console.info('init finished');
+  }
+
+  get dataView() {
+    return this._dataView;
+  }
+
+  set dataView(dataView) {
+    this._dataView = dataView;
+    this.update();
+  }
+
+  update() {
+    console.group('DataViewManager.update');
+    const updateTransformList = this.transformManager.updateTransformList.bind(this.transformManager);
+    const updateDataView = this.dataViewManager.updateDataView.bind(this.dataViewManager);
+    const updateCharts = this.chartManager.update.bind(this.chartManager);
+
+    const announce = () => { console.info(app.dataView); };
+
+    const doUpdate = async () => {
+      await updateTransformList();
+      await Promise.all([updateDataView(), await updateCharts()]);
+      await announce();
+    };
+
+    doUpdate().then(result => {
+      console.info("doUpdate.complete", result);
+    }).catch(err => {
+      console.error("doUpdate - finished with error", err);
+    });
+
+    console.groupEnd();
+  }
+}
+
+
+const app = new App();
+
+document.addEventListener('DOMContentLoaded', () => { app.init(); }, false);
