@@ -320,3 +320,218 @@ class DataViewManager {
    */
   async fetchMostRecentDataView(datasetId) {
     const userId = app.userId;
+    console.info('fetchMostRecentDataView userId', userId, 'datasetId', datasetId);
+
+    const payload = { user_id: userId };
+    if (datasetId) {
+      payload.dataset_id = datasetId;
+    }
+
+    const url = buildRequest(services.mostRecentDataView, payload);
+
+    try {
+      const response = await fetch(url);
+      if (response.status !== HTTP_OK) {
+        console.log('Error processing request, status: ' + response.status);
+        return Promise.reject('Error processing request, status: ' + response.status);
+      }
+
+      const result = await response.json();
+      if (!result.error) {
+        console.info('MostRecent', result, result['data_view']);
+        app.dataView = DataView.deserialize(result['data_view']);
+      } else {
+
+      }
+
+    } catch (err) {
+      console.log('Fetch Error:', err);
+    }
+  }
+}
+
+class DataViewRenderer {
+  renderCell(entry, label, parentElement) {
+    if (label.name === 'tag') {
+      app.tagManager.renderTagCell(entry, label, parentElement);
+    } else {
+      this.renderDefaultCell(entry, label, parentElement);
+    }
+  }
+
+  renderDefaultCell(entry, label, parentElement) {
+    const value = entry[label.name] ? entry[label.name] : '';
+
+    parentElement.appendChild(createDiv({
+      cls: 'cellText',
+      html: value,
+      style: {
+        'font-size': px(label.fontSize || DataViewManager.defaultFontSize),
+        'overflow-wrap': 'anywhere',
+      },
+    }));
+  }
+}
+
+
+class TagManager {
+  TAG_TYPE = 'Tag';
+  PARAMETER_PRIMARY_KEY_NAME = 'primary_key_column_label';
+
+  constructor() {
+    this._primaryKeyName = null;
+    this._tagsByKey = {}
+  }
+
+  get primaryKeyName() {
+    if (this._primaryKeyName === null) {
+      this._primaryKeyName = this.extractPrimaryKeyName();
+    }
+    return this._primaryKeyName;
+  }
+
+  extractPrimaryKeyName() {
+    for (const transform of app.dataView.transforms) {
+      if (transform.type !== this.TAG_TYPE) {
+        continue;
+      }
+
+      const primaryKeyName = transform.parameters[this.PARAMETER_PRIMARY_KEY_NAME];
+      console.info('Found PrimaryKey', primaryKeyName);
+      return primaryKeyName;
+    }
+
+    console.error('Failed to find valid PrimaryKey:', this._primaryKeyName);
+    return null;
+  }
+
+  updateMap(tagsByKey) {
+    this._tagsByKey = tagsByKey;
+  }
+
+  renderTagCell(entry, label, parentElement) {
+    const primaryKey = entry[this.primaryKeyName];
+
+    const container = createDiv({
+      cls: 'tagAction',
+    });
+
+    const tags = this._tagsByKey[primaryKey] || [];
+    const tagsDisplay = this.tagDataToHtml(tags, primaryKey);
+
+    container.appendChild(tagsDisplay);
+
+    const addTagInput = createInput({
+      cls: 'tagAction',
+      type: 'text',
+      keydown: e => {
+        console.info("key", e.key);
+        if (e.key === 'Enter') {
+          // clean up
+          hide(addTagInput);
+          const tags = addTagInput.value.split(",").map(s => s.trim());
+          this.addTags(tags, primaryKey);
+          // this.refreshRow(primaryKey);
+          app.dataViewManager.updateDataView();
+
+        } else if (e.key === 'Escape') {
+          hide(addTagInput);
+          addTagInput.value = '';
+        }
+      },
+    });
+
+    container.appendChild(addTagInput);
+    hide(addTagInput);
+
+    parentElement.appendChild(container);
+
+    parentElement.onmousedown = e => ifPrimaryClick(e, () => {
+      addTagInput.focus();
+      show(addTagInput);
+      setTimeout(() => { addTagInput.focus(); }, 10);
+      addTagInput.focus();
+    });
+  }
+
+  tagDataToHtml(tags, primaryKey) {
+    const mainContainer = createSpan({});
+    for (const rawTag of tags) {
+      const tagContainer = createSpan({});
+      const tag = rawTag.trim();
+
+      tagContainer.appendChild(createButton({
+        html: '&times;',
+        mousedown: e => ifPrimaryClick(e, () => {
+          console.info(e);
+          hide(tagContainer);
+          this.removeTags([tag], primaryKey);
+          e.stopPropagation();
+          e.stopImmediatePropagation();
+        }),
+      }));
+
+      tagContainer.appendChild(createLink({
+        text: tag,
+      }));
+
+      mainContainer.appendChild(tagContainer);
+    }
+    return mainContainer;
+  }
+
+  async addTags(tagNames, primaryKey) {
+    const url = buildRequest(services.addTags, {
+      'tags': tagNames,
+      'primary_key': primaryKey,
+      'primary_key_name': this.primaryKeyName,
+      'data_view_id': app.dataView.id,
+    });
+
+    try {
+      const response = await fetch(url);
+      if (response.status !== HTTP_OK) {
+        console.error('error processing request, status: ' + response.status);
+        return;
+      }
+
+      const result = await response.json();
+      if (!result.error) {
+        console.info("Successfully added", tagNames, "to", primaryKey, "in", this.primaryKeyName);
+
+      } else {
+        console.error('fetchBarData error', result.error);
+      }
+    } catch(err) {
+      console.log('Fetch Error:', err);
+    }
+  }
+
+  async removeTags(tagNames, primaryKey) {
+    const url = buildRequest(services.removeTags, {
+      'tags': tagNames,
+      'primary_key': primaryKey,
+      'primary_key_name': this.primaryKeyName,
+      'data_view_id': app.dataView.id,
+    });
+
+    try {
+      const response = await fetch(url);
+      if (response.status !== HTTP_OK) {
+        console.error('error processing request, status: ' + response.status);
+        return;
+      }
+
+      const result = await response.json();
+      if (!result.error) {
+        console.info("Successfully removed", tagNames, "from", primaryKey, "in", this.primaryKeyName);
+
+        await app.dataViewManager.updateDataView();
+      } else {
+        console.error('fetchBarData error', result.error);
+      }
+    } catch(err) {
+      console.log('Fetch Error:', err);
+    }
+  }
+}
