@@ -1,0 +1,3 @@
+
+class UserId(str):
+    pass

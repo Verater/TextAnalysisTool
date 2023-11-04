@@ -1,0 +1,460 @@
+
+body {
+    overscroll-behavior-x: none;
+    font-family: 'Helvetica Neue', 'Helvetica', 'sans-serif';
+    color: #303030;
+    margin: 0;
+}
+
+p {
+    margin: 0;
+}
+
+textarea {
+    color: #666666;
+    width: 300px;
+    height: 200px;
+    font-size: 12px;
+    font-family: 'Helvetica Neue', 'Helvetica', 'sans-serif';
+    padding: 10px;
+    border: 0;
+    box-shadow: 0 0 4px #666;
+}
+
+input, select {
+    font-size: 16px;
+    font-family: 'Helvetica Neue', 'Helvetica', 'sans-serif';
+    padding: 10px;
+    border: 1px solid rgba(128,128,128,0.5);
+    -webkit-appearance: none;
+}
+
+.modal {
+    position: absolute;
+}
+
+#transformListTable {
+    padding: 5px 20px;
+    border-spacing: 0;
+    border-collapse: collapse;
+    /* margin: 0 10px 25px 10px; */
+}
+
+.main-svg {
+    background: none;
+}
+
+.transformAddArgumentButton {
+    font-size: 16px;
+    height: 30px;
+    width: 30px;
+}
+
+#chartWindow {
+    position: fixed;
+    width: 750px;
+    height: 450px;
+    bottom: 20px;
+    right: 20px;
+
+    overflow: scroll;
+
+    border: 1px solid rgba(160,160,160,0.5);
+    box-shadow: rgba(64,64,64,0.25) 4px 4px 4px;
+    background-color: rgb(255,255,255);
+    padding: 20px 20px 10px;
+}
+
+
+#categoryWindow {
+    display: none;
+    position: fixed;
+    width: 550px;
+    height: 450px;
+    left: 20px;
+    bottom: 20px;
+
+    overflow: scroll;
+
+    border: 1px solid rgba(160,160,160,0.5);
+    box-shadow: rgba(64,64,64,0.25) 4px 4px 4px;
+    background-color: rgb(255,255,255);
+    padding: 20px 20px 10px;
+}
+
+
+.categoryTableHeading {
+    font-weight: 300;
+
+    font-size: 28px;
+    color: rgb(0,0,0);
+    margin: 20px 0;
+    column-span: all;
+}
+
+.categoryTableCategory {
+    font-weight: bold;
+    font-size: 16px;
+    color: rgb(112,112,112);
+    margin: 10px;
+}
+
+.categoryTableSubcategory {
+    font-weight: bold;
+    font-size: 18px;
+    color: rgb(48,48,48);
+    margin: 10px;
+}
+
+.chartContainer {
+    display: inline-block;
+    text-align: center;
+    height: 250px;
+    width: 700px;
+    margin: 10px;
+}
+
+.chartColumnInput {
+    height: fit-content;
+    color: rgb(96,96,96);
+    font-weight: 400;
+    font-size: 16px;
+    padding: 14px;
+    margin: 0 5px;
+}
+
+#chartCloseButton {
+    font-size: 14px;
+    border: 1px solid rgba(128,128,128,0.5);
+    margin: 10px;
+    box-shadow: rgba(128,128,128,0.5) 0 0 4px 0;
+}
+
+.tagAction input {
+    background: none;
+    display: block;
+    width: min-content;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 14px;
+    color: rgb(64,64,64);
+    text-align: left;
+    outline: none;
+}
+
+.tagAction button {
+    padding: 0 3px 0 0;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: rgb(128,128,128);
+    cursor: pointer;
+}
+
+.tagAction span {
+    display: inline-flex;
+    margin: 0 5px 0 0;
+}
+
+.tagAction span a {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.tagAction span a:hover {
+    text-decoration: underline;
+}
+
+.headerEditorButton {
+    border: none;
+    background: none;
+    padding: 10px;
+    font-size: 14px;
+    color: rgb(64,64,64);
+    text-align: center;
+    align-content: center;
+    cursor: pointer;
+}
+
+.headerEditorInput {
+    display: block;
+    width: 50px;
+    padding: 10px;
+    margin: 10px;
+    font-size: 14px;
+    color: rgb(64,64,64);
+    text-align: center;
+}
+
+.headerEditorWindow {
+    background-color: rgba(255,255,255,0.95);
+    border: 1px solid rgba(128,128,128,0.5);
+    box-shadow: rgba(128,128,128,0.5) 2px 2px 2px;
+    text-align: center;
+    align-content: center;
+    padding: 5px;
+}
+
+.headerEditorContainer {
+    background: none;
+    padding: 20px;
+}
+
+.cellActionContainer {
+    background: none;
+    padding: 20px;
+}
+
+#transformType {
+    font-size: 14px;
+    font-weight: bold;
+}
+
+#transformCreationWindow {
+    margin: 5px;
+
+}
+
+#transformArgumentSpecificationContainer {
+    padding-left: 25px;
+
+}
+
+#closeAddVisualizationButton {
+    font-size: 16px;
+    padding: 5px;
+    margin: 5px;
+    width: 30px;
+    height: 30px;
+}
+
+#closeAddTransformButton {
+    font-size: 16px;
+    padding: 5px;
+    margin: 5px;
+    width: 30px;
+    height: 30px;
+}
+
+
+.transformEntry {
+    display: inline-flex;
+    margin: 5px;
+}
+
+.removeTransformButton {
+    padding: 0;
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: rgb(128,128,128);
+    cursor: pointer;
+}
+
+.transformDescriptionFieldValue {
+    font-weight: bold;
+}
+
+.transformListDescription {
+    font-size: 14px;
+    padding: 0 20px 0 0;
+}
+
+.transformListType {
+    border: 1px solid rgba(128,128,128,0.5);
+    color: rgb(24,24,24);
+    border-radius: 5px;
+    padding: 4px 10px;
+    text-align: center;
+    margin: 0 10px 0 5px;
+    font-size: 14px;
+    letter-spacing: 0.5px;
+    background-color: rgb(240,240,240);
+}
+
+
+.transformArgumentTable {
+    margin: 20px;
+}
+
+.transformArgumentTable select {
+    max-width: 250px;
+}
+
+
+.transformArgumentLabel {
+    padding: 10px;
+}
+
+.transformArgumentExample {
+    font-style: italic;
+}
+
+.transformArgumentExample::before {
+    content: "ex:  ";
+}
+
+
+#datasetWindow {
+    border-bottom: 1px solid rgb(128, 128, 128);
+    height: 40px;
+    transition: height 0.3s ease-out;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
+#activeDatasetWindow {
+    padding: 5px;
+    color: rgb(32,32,32);
+    background-color: rgb(255,255,255);
+    transition: color 0.3s ease-in, background-color 0.3s ease-in;
+}
+
+#activeDatasetLabel {
+    font-weight: normal;
+    font-size: 16px;
+}
+
+#activeDatasetText {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+#datasetSelectionWindow {
+    padding: 20px;
+    background-color: rgb(255,255,255);
+    box-shadow: 2px 2px 2px blue;
+}
+
+#datasetSelectionTitle {
+    padding-bottom: 10px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#datasetSelectionList {
+    padding: 20px 0 0 0;
+}
+
+#datasetSelectionTools {
+    padding-top: 20px;
+    text-align: right;
+    font-size: 14px;
+}
+
+#datasetSelectionRefresh {
+    cursor: pointer;
+}
+
+#mainWindow {
+    padding-top: 50px;
+}
+
+#dataWindow {
+
+}
+
+
+#dataViewContainer {
+    margin: 5px;
+    overflow: scroll;
+    border: 1px solid rgba(128,128,128,0.5);
+}
+
+#dataViewTable {
+    border-spacing: 0;
+}
+
+#dataViewTable thead tr td {
+    font-weight: bold;
+    vertical-align: top;
+    padding: 5px;
+}
+
+#dataViewTable tbody tr td {
+    font-weight: normal;
+    vertical-align: top;
+    padding: 15px 5px;
+}
+
+#dataViewTable tbody tr:nth-child(odd) {
+    background-color: rgba(244,244,244,1);
+}
+
+#dataViewTable label {
+    cursor: context-menu;
+}
+
+.datasetEntry {
+    border-bottom: 1px solid rgb(128,128,128);
+    padding: 5px 0;
+    font-weight: normal;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.datasetEntry:hover {
+    text-shadow: 0 0 0.5px black;
+}
+
+.cellText {
+    /*
+    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
+     */
+    word-break: break-word;
+    text-overflow: ellipsis;
+}
+
+.cellText a {
+    font-weight: bold;
+    text-decoration: none;
+    color: #303030;
+}
+
+.cellText a:hover {
+    text-decoration: underline;
+    color: #000000;
+}
+
+.button {
+    margin: 5px;
+    padding: 5px;
+    border: 1px solid rgba(128,128,128,0.5);
+    display: inline-flex;
+    cursor: cell;
+}
+
+.segment {
+    position: absolute;
+    display: block;
+    /* mix-blend-mode: color-dodge; */
+    mix-blend-mode: color-burn;
+}
+
+#working {
+    background-color: rgba(128,128,128,0.5);
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: blur(2px);
+}
+
+#working h1 {
+    text-align: center;
+    font-size: 36px;
+    font-weight: bold;
+    color: rgb(32,32,32);
+    text-shadow: white 0 0 2px, white 0 0 2px, white 0 0 2px, white 0 0 2px;
+}
+
+#working div {
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    color: rgb(64,64,64);
+    text-shadow: white 0 0 2px, white 0 0 2px, white 0 0 2px, white 0 0 2px;
+}
